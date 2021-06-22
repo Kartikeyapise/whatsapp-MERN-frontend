@@ -15,6 +15,8 @@ const Chat = ({ concernedMessages, messages, currentUser, otherUser }) => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
+    var element = document.getElementById("chat__body");
+    element.scrollTop = element.scrollHeight;
     console.log("in send message");
 
     console.log({
@@ -56,7 +58,7 @@ const Chat = ({ concernedMessages, messages, currentUser, otherUser }) => {
         </div>
       </div>
 
-      <div className="chat__body">
+      <div id="chat__body" className="chat__body">
         {concernedMessages.map((m) => (
           <>
             <p

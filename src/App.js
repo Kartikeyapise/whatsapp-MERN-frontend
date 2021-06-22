@@ -11,25 +11,38 @@ import auth from "./services/authService";
 // env.config();
 // console.log(process.env);
 function App() {
-  const [currentUser, setCurrentUser] = useState({});
-  const [currentUserChat, setCurrentUserChat] = useState({});
-  const [messages, setMessages] = useState([]);
-  const [concernedMessages, setConcernedMessages] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  // const [chatUsers, setChatUsers] = useState([]);
-  // const [messageBody, setMessageBody] = useState([]);
+  const [state, setState] = useState({
+    currentUser: {},
+    currentUserChat: {},
+    messages: [],
+    concernedMessages: [],
+    allUsers: [],
+  });
+
+  // const [currentUser, setCurrentUser] = useState({});
+  // const [currentUserChat, setCurrentUserChat] = useState({});
+  // const [messages, setMessages] = useState([]);
+  // const [concernedMessages, setConcernedMessages] = useState([]);
+  // const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
     axios.get("/messages/sync").then((response) => {
       axios.get("/getAllUsers").then((response1) => {
         let messagesSync = response.data;
-        setMessages(messagesSync);
+        // setState({ ...state, messages: messagesSync });
         // console.log("response1.data", response1.data);
 
-        // setCurrentUserChat(response1.data[0]);
         let currentUser = auth.getCurrentUser();
-        setCurrentUser(currentUser);
-        setAllUsers(response1.data.filter((v) => v._id !== currentUser._id));
+        let allUsers = response1.data.filter((v) => v._id !== currentUser._id);
+        console.log("messagesSync", messagesSync);
+        setState({
+          ...state,
+          messages: messagesSync,
+          currentUser: currentUser,
+          allUsers: allUsers,
+        });
+
+        // setAllUsers(response1.data.filter((v) => v._id !== currentUser._id));
 
         // console.log("allUsers", allUsers);
         // console.log("messagesSync", messagesSync);
@@ -74,6 +87,8 @@ function App() {
     });
   }, []);
   useEffect(() => {
+    var element = document.getElementById("chat__body");
+    element.scrollTop = element.scrollHeight;
     // Enable pusher logging - don't include this in production
     // console.log("pusher info::");
     // Pusher.logToConsole = true;
@@ -84,15 +99,15 @@ function App() {
     channel.bind("inserted", (newMessage) => {
       // alert(JSON.stringify(newMessage));
       // console.log(newMessage);
-      let updatedMessages = [...messages, newMessage];
-      setMessages(updatedMessages);
+      let updatedMessages = [...state.messages, newMessage];
+      // setMessages(updatedMessages);
       // setCurrentUserChat(v);
       let messagesOfCurrentUser = updatedMessages.filter((v) => {
         if (
-          (currentUserChat._id == v.toUser._id &&
-            currentUser._id == v.fromUser._id) ||
-          (currentUser._id == v.toUser._id &&
-            currentUserChat._id == v.fromUser._id)
+          (state.currentUserChat._id == v.toUser._id &&
+            state.currentUser._id == v.fromUser._id) ||
+          (state.currentUser._id == v.toUser._id &&
+            state.currentUserChat._id == v.fromUser._id)
         ) {
           return true;
         } else {
@@ -103,7 +118,13 @@ function App() {
         a.updatedAt > b.updatedAt ? 1 : -1
       );
       console.log("sorted array", sortedArray);
-      setConcernedMessages([...sortedArray]);
+      setState({
+        ...state,
+        messages: updatedMessages,
+        concernedMessages: [...sortedArray],
+      });
+
+      // setConcernedMessages([...sortedArray]);
       console.log(sortedArray);
     });
 
@@ -111,7 +132,7 @@ function App() {
       channel.unbind_all();
       channel.unsubscribe();
     };
-  }, [messages]);
+  }, [state]);
 
   // console.log("currentUser", currentUser);
   // console.log("currentUserChat", currentUserChat);
@@ -120,13 +141,16 @@ function App() {
   // console.log("allUsers", allUsers);
   function onChangeChatUser(v) {
     console.log(v);
-    setCurrentUserChat(v);
-    let messagesOfCurrentUser = messages.filter((v) => {
+    let currentUserChat = v;
+    // setState({...state,currentUserChat:v});
+    // setCurrentUserChat(v);
+    console.log("state.messages", state.messages);
+    let messagesOfCurrentUser = state.messages.filter((vf) => {
       if (
-        (currentUserChat._id == v.toUser._id &&
-          currentUser._id == v.fromUser._id) ||
-        (currentUser._id == v.toUser._id &&
-          currentUserChat._id == v.fromUser._id)
+        (currentUserChat._id == vf.toUser._id &&
+          state.currentUser._id == vf.fromUser._id) ||
+        (state.currentUser._id == vf.toUser._id &&
+          currentUserChat._id == vf.fromUser._id)
       ) {
         return true;
       } else {
@@ -136,23 +160,31 @@ function App() {
     let sortedArray = messagesOfCurrentUser.sort((a, b) =>
       a.updatedAt > b.updatedAt ? 1 : -1
     );
+    console.log("sortedArray", sortedArray);
+
     console.log("sorted array", sortedArray);
-    setConcernedMessages(sortedArray);
+    setState({
+      ...state,
+      concernedMessages: sortedArray,
+      currentUserChat: currentUserChat,
+    });
+
+    // setConcernedMessages(sortedArray);
   }
   return (
     <div className="app">
       <div className="app__body">
         <Sidebar
-          otherUser={currentUserChat}
-          currentUser={currentUser}
-          users={allUsers}
+          otherUser={state.currentUserChat}
+          currentUser={state.currentUser}
+          users={state.allUsers}
           onChangeChatUser={onChangeChatUser}
         ></Sidebar>
         <Chat
-          otherUser={currentUserChat}
-          messages={messages}
-          concernedMessages={concernedMessages}
-          currentUser={currentUser}
+          otherUser={state.currentUserChat}
+          messages={state.messages}
+          concernedMessages={state.concernedMessages}
+          currentUser={state.currentUser}
         ></Chat>
       </div>
     </div>
