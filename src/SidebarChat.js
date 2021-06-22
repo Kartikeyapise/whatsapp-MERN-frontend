@@ -1,16 +1,27 @@
 import React, { useState } from "react";
 import { Avatar } from "@material-ui/core";
 import "./SidebarChat.css";
-const SidebarChat = () => {
+const SidebarChat = (props) => {
   return (
     <>
-      <div className="SidebarChat">
-        <Avatar></Avatar>
-        <div className="sidebarChat__info">
-          <h2>room name</h2>
-          <p>This is the lasyt messsage</p>
-        </div>
-      </div>
+      {props.users.map((v) => {
+        return (
+          <>
+            <div
+              onClick={() => {
+                props.onChangeChatUser(v);
+              }}
+              className="SidebarChat"
+            >
+              <Avatar></Avatar>
+              <div className="sidebarChat__info">
+                <h2>{v.name}</h2>
+                <p>{v.email}</p>
+              </div>
+            </div>
+          </>
+        );
+      })}
     </>
   );
 };

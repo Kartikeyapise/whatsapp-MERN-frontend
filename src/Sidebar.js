@@ -7,7 +7,10 @@ import { Avatar, IconButton } from "@material-ui/core";
 import "./Sidebar.css";
 import SidebarChat from "./SidebarChat";
 
-const Sidebar = () => {
+const Sidebar = (props) => {
+  function onChangeChatUser(v) {
+    props.onChangeChatUser(v);
+  }
   return (
     <div className="Sidebar">
       <div className="sidebar__header">
@@ -34,6 +37,8 @@ const Sidebar = () => {
         </div>
       </div>
       <div className="sidebar__chats">
+        <SidebarChat onChangeChatUser={onChangeChatUser} users={props.users} />
+        {/* <SidebarChat />
         <SidebarChat />
         <SidebarChat />
         <SidebarChat />
@@ -50,9 +55,7 @@ const Sidebar = () => {
         <SidebarChat />
         <SidebarChat />
         <SidebarChat />
-        <SidebarChat />
-        <SidebarChat />
-        <SidebarChat />
+        <SidebarChat /> */}
       </div>
     </div>
   );
